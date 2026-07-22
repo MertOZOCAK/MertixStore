@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel | Mertix Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="admin">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">A</span>
+        <div>
+          <h1>Admin Panel</h1>
+          <p>APK ve görselleri ekleyin</p>
+        </div>
+      </div>
+      <nav>
+        <a href="./index.html">Ana Sayfa</a>
+      </nav>
+    </header>
+
+    <main class="admin-shell">
+      <section class="panel-card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Yeni uygulama</p>
+            <h3>Uygulama bilgilerini girin</h3>
+          </div>
+        </div>
+
+        <form id="app-form" class="app-form">
+          <div class="form-grid">
+            <label>
+              Uygulama adı
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              Geliştirici
+              <input type="text" name="developer" required />
+            </label>
+            <label>
+              Kategori
+              <input type="text" name="category" placeholder="Eğitim, Oyun, Araçlar" required />
+            </label>
+            <label>
+              Sürüm
+              <input type="text" name="version" placeholder="1.0.0" required inputmode="numeric" />
+            </label>
+            <label>
+              Fiyat
+              <input type="text" name="price" placeholder="Ücretsiz" required inputmode="numeric" />
+            </label>
+            <label>
+              Paket adı
+              <input type="text" name="packageName" placeholder="com.ornek.uygulama" required />
+            </label>
+          </div>
+
+          <label>
+            Kısa açıklama
+            <textarea name="description" rows="3" required></textarea>
+          </label>
+
+          <label>
+            Detaylı açıklama
+            <textarea name="longDescription" rows="5" required></textarea>
+          </label>
+
+          <label>
+            APK dosyası
+            <select name="apkFile" id="apk-selector" required>
+              <option value="">APK seçin</option>
+            </select>
+          </label>
+
+          <div class="file-section">
+            <p class="field-label">Mevcut ekran görselleri</p>
+            <div id="screenshot-selector" class="file-grid"></div>
+            <p class="field-help">res/ klasörüne eklediğiniz görseller burada listelenecek.</p>
+          </div>
+
+          <div class="form-actions">
+            <button id="submit-button" type="submit" class="primary-btn">Kaydet</button>
+            <button id="cancel-edit" type="button" class="secondary-btn hidden">İptal</button>
+            <label style="display:flex;align-items:center;gap:8px;" title="Sync with Firebase (optional)">
+              <input type="checkbox" id="sync-firebase" name="syncFirebase" /> Firebase'e gönder
+            </label>
+          </div>
+        </form>
+
+        <div class="section-divider"></div>
+        <div class="published-apps">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Yayınlanan</p>
+              <h4>Uygulamalar</h4>
+            </div>
+          </div>
+          <div id="app-list" class="app-list"></div>
+        </div>
+      </section>
+
+      <section class="panel-card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Durum</p>
+            <h3>Firebase / yerel kayıt</h3>
+          </div>
+        </div>
+        <div id="status-box" class="status-box">
+          Yükleniyor...
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+          <button id="export-apps" class="secondary-btn">Export JSON</button>
+          <label for="import-apps" class="secondary-btn" style="cursor:pointer;">Import JSON</label>
+          <input id="import-apps" type="file" accept="application/json" style="display:none" />
+        </div>
+      </section>
+    </main>
+
+    <script src="./apk/list.js"></script>
+    <script src="./res/list.js"></script>
+    <script src="./firebase-config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

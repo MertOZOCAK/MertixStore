@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Check assets - Mertix Store</title>
+    <style>
+      body{font-family:Inter,system-ui,Segoe UI,Arial;background:#07111f;color:#fff;padding:18px}
+      .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+      .card{background:rgba(15,23,42,0.9);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04)}
+      img{max-width:100%;height:auto;background:#000;padding:6px}
+      .bad{color:#ff8b8b}
+      .ok{color:#9be89b}
+    </style>
+  </head>
+  <body>
+    <h2>Asset checker</h2>
+    <p>This page tries to load files listed in `res/list.js` and `res/list.json` and shows their status. Use this from the device that can't see images.</p>
+
+    <h3>RES manifest (window.RES_LIST)</h3>
+    <div id="res-manifest" class="grid"></div>
+
+    <h3>RES list.json</h3>
+    <div id="res-json" class="grid"></div>
+
+    <script src="./res/list.js"></script>
+    <script>
+      function addCard(container, url){
+        const div = document.createElement('div'); div.className='card';
+        const img = document.createElement('img'); img.src = './res/'+url; img.alt=url;
+        const p = document.createElement('div'); p.textContent = url;
+        const status = document.createElement('div'); status.textContent='loading...';
+        img.onload = ()=> status.innerHTML = '<span class="ok">loaded</span>';
+        img.onerror = ()=> status.innerHTML = '<span class="bad">error</span>';
+        div.appendChild(img); div.appendChild(p); div.appendChild(status);
+        container.appendChild(div);
+      }
+
+      const resManifestContainer = document.getElementById('res-manifest');
+      if (Array.isArray(window.RES_LIST)){
+        window.RES_LIST.forEach((f)=> addCard(resManifestContainer, f));
+      } else {
+        resManifestContainer.textContent = '(no window.RES_LIST)';
+      }
+
+      fetch('./res/list.json').then(r=>r.json()).then(list=>{
+        const c = document.getElementById('res-json');
+        if (Array.isArray(list)) list.forEach(f=> addCard(c,f)); else c.textContent='(invalid json)';
+      }).catch(e=> document.getElementById('res-json').textContent='(fetch error)');
+    </script>
+  </body>
+</html>

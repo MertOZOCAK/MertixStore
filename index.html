@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mertix Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="home">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">M</span>
+        <div>
+          <h1>Mertix Store</h1>
+          <p>Uygulama Mağazası</p>
+        </div>
+      </div>
+      <nav>
+        <a href="./admin.html">Admin Panel</a>
+      </nav>
+    </header>
+
+    <main class="hero">
+      <section class="hero-card">
+        <div>
+          <p class="eyebrow">Yeni sürüm • Güzel tasarım</p>
+          <h2>Geliştirdiğin uygulamaları tek bir yerde sergile</h2>
+          <p>
+            APK dosyasını yükle, detaylarını ekle, kullanıcılar görsün ve indirsin.
+          </p>
+          <a href="#apps" class="primary-btn">Uygulamaları Gör</a>
+        </div>
+        <div class="hero-illustration">
+          <div class="phone-card"></div>
+        </div>
+      </section>
+
+      <section id="apps" class="apps-section">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Katalog</p>
+            <h3>Öne çıkan uygulamalar</h3>
+          </div>
+          <span id="app-count" class="pill">0 uygulama</span>
+        </div>
+        <div id="app-grid" class="app-grid"></div>
+      </section>
+    </main>
+
+    <div id="app-modal" class="modal hidden">
+      <div class="modal-card">
+        <button id="close-modal" class="close-btn">×</button>
+        <div id="modal-content"></div>
+      </div>
+    </div>
+
+    
+
+    <script src="./app.js"></script>
+    <script src="./firebase-config.js"></script>
+  </body>
+</html>
