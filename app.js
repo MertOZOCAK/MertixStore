@@ -391,7 +391,7 @@ function createAppCard(app, index) {
   // Open details when clicking the card (but not when clicking the download button)
   card.addEventListener('click', (event) => {
     if (event.target.closest('.download-btn')) return;
-    openModal(app);
+    window.location.href = `./app-detail.html?id=${encodeURIComponent(app.id)}`;
   });
 
   const dl = card.querySelector('.download-btn');
@@ -477,40 +477,6 @@ function startDownloadSimulation(buttonEl, apkUrl) {
   }
 }
 
-function openModal(app) {
-  const modal = document.getElementById('app-modal');
-  const content = document.getElementById('modal-content');
-  if (!modal || !content) return;
-  const screenshots = app.screenshotUrls?.map((url) => `<img src="${ensureScreenshotUrl(url)}" alt="${app.name}" loading="lazy" />`).join('') || `<img src="${defaultImage}" alt="${app.name}" loading="lazy" />`;
-  content.innerHTML = `
-    <div class="modal-header">
-      <div>
-        <h3>${app.name}</h3>
-        <p class="meta">${app.developer || 'Geliştirici'} • ${app.category || 'Kategori'} • ${app.version || '1.0.0'}</p>
-      </div>
-      <span class="price">${app.price || 'Ücretsiz'}</span>
-    </div>
-    <div class="screenshot-row">${screenshots}</div>
-    <p>${app.longDescription || app.description}</p>
-    <p><strong>Paket:</strong> ${app.packageName || 'Belirtilmedi'}</p>
-    <div class="app-actions modal-actions">
-      <button id="modal-download-btn" class="primary-btn" data-apk-url="${app.apkUrl || '#'}">APK İndir</button>
-    </div>
-  `;
-  modal.classList.remove('hidden');
-  // wire modal download button
-  const modalDl = document.getElementById('modal-download-btn');
-  if (modalDl) {
-    modalDl.addEventListener('click', () => {
-      const url = modalDl.getAttribute('data-apk-url');
-      if (modalDl.dataset.downloading === 'true' || modalDl._dlTimer) {
-        cancelDownload(modalDl);
-      } else {
-        startDownloadSimulation(modalDl, url);
-      }
-    });
-  }
-}
 
 function cancelDownload(buttonEl) {
   try {
@@ -538,10 +504,6 @@ function cancelDownload(buttonEl) {
       buttonEl.removeAttribute('data-downloading');
     }
   }
-}
-
-function closeModal() {
-  document.getElementById('app-modal')?.classList.add('hidden');
 }
 
 function loadAppsLocally() {
@@ -622,11 +584,6 @@ function renderPublishedApps() {
 }
 
 function setupEvents() {
-  document.getElementById('close-modal')?.addEventListener('click', closeModal);
-  document.getElementById('app-modal')?.addEventListener('click', (event) => {
-    if (event.target.id === 'app-modal') closeModal();
-  });
-
   // Export / Import apps (JSON)
   const exportBtn = document.getElementById('export-apps');
   const importInput = document.getElementById('import-apps');
