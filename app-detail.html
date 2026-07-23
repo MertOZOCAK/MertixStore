@@ -28,7 +28,50 @@
         <div id="detail-content" class="detail-content"></div>
       </div>
     </main>
+    <div class="footer-sep" aria-hidden="true"></div>
+    <footer class="site-footer">
+      <div class="footer-shell">
+        <div class="footer-brand">
+          <span class="brand-mark">M</span>
+          <div>
+            <h4>Mertix Store</h4>
+            <p>Uygulama Detayı</p>
+          </div>
+        </div>
+        <div class="footer-links">
+          <div>
+            <h5>Hızlı Erişim</h5>
+            <a href="./index.html">Ana Sayfa</a>
+            <a href="./admin.html">Admin</a>
+          </div>
+          <div>
+            <h5>Yardım</h5>
+            <a href="#">Sıkça Sorulanlar</a>
+            <a href="#">Destek</a>
+          </div>
+        </div>
+        <div class="footer-subscribe">
+          <form id="footer-subscribe-form">
+            <label for="footer-email">Yeniliklerden haberdar olmak için e-postanızı bırakın</label>
+            <div class="subscribe-row">
+              <input id="footer-email" name="email" type="email" placeholder="E-posta adresiniz" required />
+              <button type="submit" class="primary-btn">Abone Ol</button>
+            </div>
+            <div id="footer-subscribe-msg" class="muted" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="footer-meta">
+          <p class="muted">© <span id="footer-year"></span> Mertix Store</p>
+          <p class="muted">İletişim: <a href="mailto:hello@mertix.example">hello@mertix.example</a></p>
+          <div class="footer-social">
+            <a href="#" aria-label="Twitter" class="social-link">Twitter</a>
+            <a href="#" aria-label="GitHub" class="social-link">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </footer>
 
     <script src="./app-detail.js"></script>
+    <script src="./footer.js"></script>
   </body>
 </html>

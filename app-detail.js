@@ -257,8 +257,130 @@ function getAppIdFromUrl() {
   return params.get('id');
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function initFirebaseIfNeededLocal() {
+  if (window._firebaseInitialized) return true;
+  if (!window.firebaseConfig) return false;
+  try {
+    if (typeof firebase === 'undefined') {
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js');
+    }
+    if (!window._firebaseInitialized) {
+      firebase.initializeApp(window.firebaseConfig);
+      window._firestore = firebase.firestore();
+      window._firebaseInitialized = true;
+      console.log('app-detail: Firebase initialized');
+    }
+    return true;
+  } catch (e) {
+    console.error('app-detail: Firebase init failed', e);
+    return false;
+  }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
   const id = getAppIdFromUrl();
   const app = id ? getAppDataFromStorage(id) : null;
   renderAppDetails(app);
+
+  // If Firebase is configured, subscribe to real-time updates for this app
+  if (id && window.firebaseConfig) {
+    const inited = await initFirebaseIfNeededLocal();
+    if (!inited) return;
+
+    try {
+      const docRef = window._firestore.collection('apps').doc(id);
+
+      // add a small realtime status badge to the page for debugging
+      let rtBadge = document.getElementById('realtime-badge');
+      if (!rtBadge) {
+        rtBadge = document.createElement('div');
+        rtBadge.id = 'realtime-badge';
+        rtBadge.style.cssText = 'position:fixed;right:18px;top:84px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,0.45);color:#fff;font-size:12px;z-index:60;';
+        rtBadge.textContent = 'Realtime: bağlanılıyor...';
+        document.body.appendChild(rtBadge);
+      }
+
+      let lastSnapshot = null;
+      const setBadge = (txt, ok) => { rtBadge.textContent = `Realtime: ${txt}`; rtBadge.style.background = ok ? 'linear-gradient(90deg,#10b981,#06b6d4)' : 'rgba(239,68,68,0.12)'; };
+
+      const unsubscribe = docRef.onSnapshot((snapshot) => {
+        try {
+          console.log('app-detail: onSnapshot event', { id, metadata: snapshot && snapshot.metadata });
+          if (!snapshot) return;
+          if (!snapshot.exists) {
+            setBadge('kayıt yok', false);
+            return;
+          }
+          const data = snapshot.data();
+          console.log('app-detail: snapshot data', data);
+          lastSnapshot = Date.now();
+          setBadge('güncellendi ' + new Date(lastSnapshot).toLocaleTimeString(), true);
+
+          // Merge/update localStorage so other parts of UI see the change
+          try {
+            const apps = JSON.parse(localStorage.getItem('mertixApps') || '[]');
+            const idx = apps.findIndex((a) => a.id === id);
+            if (idx === -1) apps.push(data);
+            else apps[idx] = data;
+            localStorage.setItem('mertixApps', JSON.stringify(apps));
+          } catch (e) {
+            console.warn('app-detail: could not merge to localStorage', e);
+          }
+          renderAppDetails(data);
+        } catch (e) {
+          console.error('app-detail: onSnapshot handler exception', e);
+        }
+      }, (err) => {
+        console.error('app-detail: onSnapshot error', err);
+        setBadge('hata', false);
+      });
+
+      // fallback: if no snapshot received within 12s, do a manual get() poll once
+      const pollInterval = 12000;
+      let pollTimer = setInterval(async () => {
+        try {
+          if (lastSnapshot && Date.now() - lastSnapshot < pollInterval) return; // recent snapshot received
+          const doc = await docRef.get();
+          if (doc && doc.exists) {
+            const data = doc.data();
+            // compare by updatedAt or JSON
+            const apps = JSON.parse(localStorage.getItem('mertixApps') || '[]');
+            const idx = apps.findIndex((a) => a.id === id);
+            const local = idx === -1 ? null : apps[idx];
+            const remoteSerialized = JSON.stringify(data || {});
+            const localSerialized = JSON.stringify(local || {});
+            if (remoteSerialized !== localSerialized) {
+              console.log('app-detail: poll detected change, updating local copy');
+              if (idx === -1) apps.push(data); else apps[idx] = data;
+              localStorage.setItem('mertixApps', JSON.stringify(apps));
+              renderAppDetails(data);
+              lastSnapshot = Date.now();
+              setBadge('polled ve güncellendi ' + new Date(lastSnapshot).toLocaleTimeString(), true);
+            }
+          }
+        } catch (e) {
+          console.warn('app-detail: poll error', e);
+        }
+      }, pollInterval);
+
+      // detach on unload
+      window.addEventListener('beforeunload', () => {
+        try { unsubscribe(); } catch (e) {}
+        try { clearInterval(pollTimer); } catch (e) {}
+      });
+    } catch (e) {
+      console.error('app-detail: realtime subscription failed', e);
+    }
+  }
 });

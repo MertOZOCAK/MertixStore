@@ -198,6 +198,46 @@ nav a:hover {
   padding: 0 8px;
 }
 
+/* Admin panel improvements */
+.admin-panel .admin-form-columns {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 18px;
+}
+
+.admin-form-side { display: block; }
+
+.file-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.file-grid label { background: rgba(255,255,255,0.02); padding:8px 10px; border-radius:8px; cursor:pointer; }
+
+.desktop-actions { display:flex; gap:8px; margin-top:12px; }
+
+/* Mobile sticky action bar */
+.admin-action-bar {
+  display:none;
+  position:fixed;
+  left:12px;
+  right:12px;
+  bottom:12px;
+  gap:10px;
+  background: linear-gradient(90deg, rgba(15,23,42,0.98), rgba(7,17,31,0.98));
+  padding:12px;
+  border-radius:12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  z-index:80;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-action-bar .primary-btn, .admin-action-bar .secondary-btn { flex:1; }
+
+@media (max-width: 920px) {
+  .admin-panel .admin-form-columns { grid-template-columns: 1fr; }
+  .admin-action-bar { display:flex; }
+  .desktop-actions { display:none; }
+  .app-form input, .app-form textarea { font-size:1rem; padding:12px; }
+}
+
 .section-head {
   display: flex;
   justify-content: space-between;
@@ -441,6 +481,114 @@ nav a:hover {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
+
+/* Footer styles */
+.site-footer {
+  margin-top: 28px;
+  padding: 28px 12px;
+}
+
+.footer-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 220px;
+  gap: 20px;
+  align-items: start;
+}
+
+.footer-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.footer-brand h4 {
+  margin: 0 0 4px 0;
+}
+
+.footer-links h5 {
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+}
+
+.footer-links a {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.footer-meta {
+  text-align: right;
+}
+
+.footer-meta .muted {
+  color: var(--muted);
+  margin: 0 0 6px 0;
+}
+
+@media (max-width: 720px) {
+  .footer-shell {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+  .footer-meta { text-align: left; }
+}
+
+/* Back to top button */
+#back-to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(79,70,229,0.18);
+  transform: translateY(12px) scale(.9);
+  opacity: 0;
+  transition: transform 180ms ease, opacity 180ms ease;
+  z-index: 60;
+}
+
+#back-to-top.visible {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.footer-social { margin-top: 8px; display:flex; gap:8px; }
+.footer-social .social-link { color: var(--muted); display:inline-flex; align-items:center; gap:8px; }
+.footer-social .social-link svg { opacity: .95 }
+
+/* Separator line above footer */
+.footer-sep {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.06));
+  margin-top: 28px;
+}
+
+.footer-subscribe { padding: 8px 0; }
+.footer-subscribe label { display:block; color:var(--text); font-weight:700; margin-bottom:6px; }
+.subscribe-row { display:flex; gap:8px; align-items:center; }
+.subscribe-row input[type="email"]{
+  flex:1;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.02);
+  color:var(--text);
+}
+.subscribe-row input::placeholder{ color: rgba(255,255,255,0.35); }
+.subscribe-row .primary-btn{ padding:8px 12px; border-radius:10px; }
+
+/* Slightly lift footer background and spacing to feel less empty */
+.site-footer { background: linear-gradient(180deg, rgba(15,23,42,0.02), rgba(7,17,31,0.02)); padding-top: 18px; padding-bottom: 28px; }
+.footer-shell { padding: 18px; background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent); border-radius: 12px; }
 
 .detail-body p {
   margin: 0;
@@ -725,8 +873,49 @@ textarea {
 
 .app-item .item-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.app-item .item-actions .icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.app-item .item-actions .icon-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.08);
+}
+
+.app-item .item-actions .icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.app-item .item-actions .danger-btn {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.app-item .item-actions .danger-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+}
+
+.item-hidden {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--accent-2);
+  margin-left: 6px;
 }
 
 .hidden {

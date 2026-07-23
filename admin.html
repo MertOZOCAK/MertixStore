@@ -27,15 +27,15 @@
     </header>
 
     <main class="admin-shell">
-      <section class="panel-card">
+      <section class="panel-card admin-panel">
         <div class="section-head">
           <div>
             <p class="eyebrow">Yeni uygulama</p>
             <h3>Uygulama bilgilerini girin</h3>
           </div>
         </div>
-
         <form id="app-form" class="app-form">
+          <div class="admin-form-columns">
           <div class="form-grid">
             <label>
               Uygulama adı
@@ -62,23 +62,21 @@
               <input type="text" name="packageName" placeholder="com.ornek.uygulama" required />
             </label>
           </div>
+            <label>
+              Kısa açıklama
+              <textarea name="description" rows="3" required></textarea>
+            </label>
 
-          <label>
-            Kısa açıklama
-            <textarea name="description" rows="3" required></textarea>
-          </label>
+            <label>
+              Detaylı açıklama
+              <textarea name="longDescription" rows="5" required placeholder="Satır atlayarak yazın, maddeler için - kullanın, kalın yazı için **metin**"></textarea>
+            </label>
 
-          <label>
-            Detaylı açıklama
-            <textarea name="longDescription" rows="5" required placeholder="Satır atlayarak yazın, maddeler için - kullanın, kalın yazı için **metin**"></textarea>
-          </label>
+            <label>
+              Yenilikler (Play Store tarzı)
+              <textarea name="whatsNew" rows="4" placeholder="Örn: - Hata düzeltmeleri\n- Yeni tema desteği\nKalın için **metin**"></textarea>
+            </label>
 
-          <label>
-            Yenilikler (Play Store tarzı)
-            <textarea name="whatsNew" rows="4" placeholder="Örn: - Hata düzeltmeleri\n- Yeni tema desteği\nKalın için **metin**"></textarea>
-          </label>
-
-          <div class="form-grid">
             <label>
               Yüklenme Tarihi
               <input type="date" name="installDate" />
@@ -87,29 +85,32 @@
               Güncelleme Tarihi
               <input type="date" name="updateDate" />
             </label>
+
           </div>
 
-          <label>
-            APK dosyası
-            <select name="apkFile" id="apk-selector" required>
-              <option value="">APK seçin</option>
-            </select>
-          </label>
-
-          <div class="file-section">
-            <p class="field-label">Mevcut ekran görselleri</p>
-            <div id="screenshot-selector" class="file-grid"></div>
-            <p class="field-help">res/ klasörüne eklediğiniz görseller burada listelenecek.</p>
-          </div>
-
-          <div class="form-actions">
-            <button id="submit-button" type="submit" class="primary-btn">Kaydet</button>
-            <button id="cancel-edit" type="button" class="secondary-btn hidden">İptal</button>
-            <label style="display:flex;align-items:center;gap:8px;" title="Sync with Firebase (optional)">
-              <input type="checkbox" id="sync-firebase" name="syncFirebase" /> Firebase'e gönder
+          <div class="admin-form-side">
+            <label>
+              APK dosyası
+              <select name="apkFile" id="apk-selector" required>
+                <option value="">APK seçin</option>
+              </select>
             </label>
+
+            <div class="file-section">
+              <p class="field-label">Mevcut ekran görselleri</p>
+              <div id="screenshot-selector" class="file-grid"></div>
+              <p class="field-help">res/ klasörüne eklediğiniz görseller burada listelenecek.</p>
+            </div>
+
+            <div class="form-actions desktop-actions">
+              <button id="submit-button" type="submit" class="primary-btn">Kaydet</button>
+              <button id="cancel-edit" type="button" class="secondary-btn hidden">İptal</button>
+            </div>
           </div>
+
         </form>
+
+        
 
         <div class="section-divider"></div>
         <div class="published-apps">
@@ -137,6 +138,8 @@
           <button id="export-apps" class="secondary-btn">Export JSON</button>
           <label for="import-apps" class="secondary-btn" style="cursor:pointer;">Import JSON</label>
           <input id="import-apps" type="file" accept="application/json" style="display:none" />
+          <button id="sync-from-firebase" class="secondary-btn">Firebase'den Senkronize Et</button>
+          <button id="force-notify" class="secondary-btn">Force Notify (ping)</button>
         </div>
       </section>
     </main>

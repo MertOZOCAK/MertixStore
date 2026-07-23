@@ -35,6 +35,7 @@ function saveAppLocally(appData, apkUrl, screenshotUrls) {
     whatsNew: appData.whatsNew,
     installDate: appData.installDate || '',
     updateDate: appData.updateDate || '',
+    visible: appData.visible !== false,
     apkUrl,
     screenshotUrls: screenshotUrls.length ? screenshotUrls : [defaultImage],
   };
@@ -55,6 +56,7 @@ function updateAppLocally(id, appData, apkUrl, screenshotUrls) {
     whatsNew: appData.whatsNew,
     installDate: appData.installDate || apps[index].installDate || '',
     updateDate: appData.updateDate || apps[index].updateDate || '',
+    visible: typeof appData.visible === 'boolean' ? appData.visible : apps[index].visible !== false,
     apkUrl,
     screenshotUrls: screenshotUrls.length ? screenshotUrls : [defaultImage],
     updatedAt: new Date().toISOString(),
@@ -116,7 +118,8 @@ async function saveAppToFirestore(appRecord) {
     return true;
   } catch (e) {
     console.error('Firestore save error', e);
-    showStatus(`Firestore kaydetme hatası: ${e.message}`, true);
+    const code = e && e.code ? ` (${e.code})` : '';
+    showStatus(`Firestore kaydetme hatası: ${e && e.message ? e.message : e}${code}`, true);
     return false;
   }
 }
@@ -527,7 +530,9 @@ function renderApps() {
   const count = document.getElementById('app-count');
   if (!grid) return;
 
-  const apps = loadAppsLocally().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const apps = loadAppsLocally()
+    .filter((app) => app.visible !== false)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   grid.innerHTML = '';
   if (!apps.length) {
@@ -557,12 +562,19 @@ function renderPublishedApps() {
     item.className = 'app-item';
     item.innerHTML = `
       <div class="item-info">
-        <h5>${app.name}</h5>
+        <h5>${app.name}${app.visible === false ? ' <span class="item-hidden">(Gizli)</span>' : ''}</h5>
         <p>${app.developer} • ${app.version}</p>
       </div>
       <div class="item-actions">
-        <button class="secondary-btn" data-action="edit">Düzenle</button>
-        <button class="secondary-btn danger-btn" data-action="delete">Sil</button>
+        <button class="icon-btn" title="Gizliliği değiştir" data-action="toggle-visible" aria-label="Görünürlüğü değiştir">
+          ${app.visible === false ? '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 6.5c-3.19 0-6 1.88-7.28 4.5 1.28 2.62 4.09 4.5 7.28 4.5s6-1.88 7.28-4.5C18 8.38 15.19 6.5 12 6.5zm0 7.5a3 3 0 110-6 3 3 0 010 6z" opacity="0.4"/><path fill="currentColor" d="M12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z"/></svg>' : '<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 6.5C8.81 6.5 5.99 8.38 4.71 11a10.77 10.77 0 004.28 3.64L12 12l2.99-2.65A10.77 10.77 0 0019.29 11C18.01 8.38 15.19 6.5 12 6.5zm0 10a7.9 7.9 0 01-5.25-1.86L12 14l5.25 2.64A7.9 7.9 0 0112 16.5z"/></svg>'}
+        </button>
+        <button class="icon-btn" data-action="edit" title="Düzenle" aria-label="Düzenle">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm18.71-11.04a1 1 0 000-1.41l-2.5-2.5a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.99-1.67z"/></svg>
+        </button>
+        <button class="icon-btn danger-btn" data-action="delete" title="Sil" aria-label="Sil">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6v12zm3.5-9h1v8h-1v-8zm5 0h1v8h-1v-8zM15.5 4l-1-1h-5l-1 1H5v2h14V4h-3.5z"/></svg>
+        </button>
       </div>
     `;
 
@@ -571,6 +583,25 @@ function renderPublishedApps() {
       fillForm(app);
       document.getElementById('submit-button').textContent = 'Güncelle';
       document.getElementById('cancel-edit').classList.remove('hidden');
+    });
+
+    item.querySelector('[data-action="toggle-visible"]').addEventListener('click', async () => {
+      try {
+        app.visible = app.visible === false ? true : false;
+        const updated = updateAppLocally(app.id, app, app.apkUrl, app.screenshotUrls);
+        localStorage.setItem('mertixApps', JSON.stringify(loadAppsLocally()));
+        renderApps();
+        renderPublishedApps();
+        showStatus(`Uygulama artık ${app.visible ? 'görünür' : 'gizli'} durumda.`);
+        try {
+          await initFirebaseIfNeeded();
+          if (window._firebaseInitialized) await saveAppToFirestore(updated);
+        } catch (e) {
+          console.warn('visibility toggle firestore save failed', e);
+        }
+      } catch (e) {
+        console.error('toggle-visible error', e);
+      }
     });
 
     item.querySelector('[data-action="delete"]').addEventListener('click', () => {
@@ -647,11 +678,77 @@ function setupEvents() {
   if (form) {
     form.addEventListener('submit', handleAdminSubmit);
   }
+  const syncBtn = document.getElementById('sync-from-firebase');
+  if (syncBtn) {
+      syncBtn.addEventListener('click', async () => {
+        showStatus('Firebase ile eşitleniyor...');
+        try {
+          const inited = await initFirebaseIfNeeded();
+          if (!inited) {
+            showStatus('Firebase başlatılamadı. Konsolu kontrol edin.', true);
+            return;
+          }
+          const remote = await fetchAppsFromFirestore();
+          if (!Array.isArray(remote) || !remote.length) {
+            showStatus('Firebase üzerinde uygulama bulunamadı veya erişilemedi.', true);
+            console.log('sync-from-firebase: remote=', remote);
+            return;
+          }
+          const existing = loadAppsLocally();
+          const map = new Map();
+          existing.forEach((a) => map.set(a.id || JSON.stringify(a), a));
+          remote.forEach((a) => map.set(a.id || JSON.stringify(a), a));
+          const merged = Array.from(map.values());
+          localStorage.setItem('mertixApps', JSON.stringify(merged));
+          renderApps();
+          renderPublishedApps();
+          showStatus(`Firebase'den ${remote.length} uygulama senkronize edildi.`);
+          console.log('sync-from-firebase: merged count=', merged.length);
+        } catch (e) {
+          console.error('Manual sync error', e);
+          showStatus(`Sync hatası: ${e && e.message ? e.message : e}`, true);
+        }
+      });
+    }
 
   const cancelButton = document.getElementById('cancel-edit');
   if (cancelButton) {
     cancelButton.addEventListener('click', () => {
       resetForm();
+    });
+  }
+
+  // Mobile sticky action bar bindings
+  const mobileSave = document.getElementById('mobile-save');
+  const mobileCancel = document.getElementById('mobile-cancel');
+  if (mobileSave) {
+    mobileSave.addEventListener('click', () => {
+      const form = document.getElementById('app-form');
+      if (form) form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true }));
+    });
+  }
+  if (mobileCancel) {
+    mobileCancel.addEventListener('click', () => resetForm());
+  }
+
+  const forceBtn = document.getElementById('force-notify');
+  if (forceBtn) {
+    forceBtn.addEventListener('click', async () => {
+      try {
+        const id = editIndex || null;
+        if (!id) {
+          showStatus('Önce düzenleme moduna girip bir uygulama seçin (Düzenle).', true);
+          return;
+        }
+        const inited = await initFirebaseIfNeeded();
+        if (!inited) { showStatus('Firebase başlatılamadı.', true); return; }
+        await window._firestore.collection('apps').doc(id).set({ lastPing: new Date().toISOString() }, { merge: true });
+        showStatus('Ping gönderildi. Dinleyiciler tetiklenmelidir.');
+        console.log('force-notify: pinged app id=', id);
+      } catch (e) {
+        console.error('force-notify error', e);
+        showStatus('Ping gönderilemedi. Konsolu kontrol et.', true);
+      }
     });
   }
 }
