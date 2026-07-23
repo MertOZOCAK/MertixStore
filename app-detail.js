@@ -211,18 +211,28 @@ async function renderAppDetails(app) {
       </div>
       ${extraScreenshots ? `<div class="screenshot-row">${extraScreenshots}</div>` : ''}
       <div class="detail-body">
-        <div class="detail-section">
-          <h3>Açıklama</h3>
-          ${formatDescriptionText(app.longDescription || app.description || 'Bu uygulama için henüz ayrıntılı bir açıklama eklenmemiş.')}
+        <div class="detail-left">
+          <div class="detail-section">
+            <h3>Açıklama</h3>
+            ${formatDescriptionText(app.longDescription || app.description || 'Bu uygulama için henüz ayrıntılı bir açıklama eklenmemiş.')}
+          </div>
         </div>
-        <div class="detail-meta-grid">
-          <div><strong>Geliştirici Ekibi</strong><span>${app.developer || 'Bilinmiyor'}</span></div>
-          <div><strong>Uygulama Versiyonu</strong><span>${app.version || '1.0.0'}</span></div>
-          <div><strong>Paket Adı</strong><span>${app.packageName || 'Belirtilmedi'}</span></div>
-          <div><strong>Uygulama Boyutu</strong><span>${apkSize ? formatBytes(apkSize) : 'Bilinmiyor'}</span></div>
-          <div><strong>Ekleme / Güncelleme Tarihi</strong><span>${new Date(app.createdAt || Date.now()).toLocaleDateString('tr-TR')}</span></div>
+        <div class="detail-right">
+          <div class="detail-section whats-new-section">
+            <h3>Yenilikler</h3>
+            ${formatDescriptionText(app.whatsNew || 'Bu sürüme ait bir değişiklik listesi bulunmuyor.')}
+          </div>
+          <div class="detail-meta-grid">
+            <div><strong>Geliştirici Ekibi</strong><span>${app.developer || 'Bilinmiyor'}</span></div>
+            <div><strong>Uygulama Versiyonu</strong><span>${app.version || '1.0.0'}</span></div>
+            <div><strong>Paket Adı</strong><span>${app.packageName || 'Belirtilmedi'}</span></div>
+            <div><strong>Uygulama Boyutu</strong><span>${apkSize ? formatBytes(apkSize) : 'Bilinmiyor'}</span></div>
+            <div>
+              <strong>Yükleme • Güncelleme Tarihi</strong>
+              <span>${app.installDate ? new Date(app.installDate).toLocaleDateString('tr-TR') : 'Belirtilmedi'} • ${app.updateDate ? new Date(app.updateDate).toLocaleDateString('tr-TR') : 'Belirtilmedi'}</span>
+            </div>
+          </div>
         </div>
-      </div>
       <div class="app-actions detail-actions">
         <button id="detail-download-btn" class="primary-btn download-btn" type="button" data-apk-url="${app.apkUrl || '#'}">APK İndir</button>
       </div>

@@ -423,6 +423,25 @@ nav a:hover {
   gap: 22px;
 }
 
+/* Two-column layout for details: main description left, side content right */
+@media (min-width: 860px) {
+  .detail-body {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+  .detail-right {
+    display: grid;
+    gap: 18px;
+  }
+}
+
+.whats-new-section {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 .detail-body p {
   margin: 0;
   color: var(--muted);

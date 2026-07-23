@@ -20,6 +20,9 @@ function getAppDataFromForm(form) {
     packageName: fd.get('packageName'),
     description: fd.get('description'),
     longDescription: fd.get('longDescription'),
+    whatsNew: fd.get('whatsNew'),
+    installDate: fd.get('installDate') || '',
+    updateDate: fd.get('updateDate') || '',
     createdAt: new Date().toISOString(),
   };
 }
@@ -29,6 +32,9 @@ function saveAppLocally(appData, apkUrl, screenshotUrls) {
   const appRecord = {
     id: crypto.randomUUID(),
     ...appData,
+    whatsNew: appData.whatsNew,
+    installDate: appData.installDate || '',
+    updateDate: appData.updateDate || '',
     apkUrl,
     screenshotUrls: screenshotUrls.length ? screenshotUrls : [defaultImage],
   };
@@ -46,6 +52,9 @@ function updateAppLocally(id, appData, apkUrl, screenshotUrls) {
   apps[index] = {
     ...apps[index],
     ...appData,
+    whatsNew: appData.whatsNew,
+    installDate: appData.installDate || apps[index].installDate || '',
+    updateDate: appData.updateDate || apps[index].updateDate || '',
     apkUrl,
     screenshotUrls: screenshotUrls.length ? screenshotUrls : [defaultImage],
     updatedAt: new Date().toISOString(),
@@ -168,6 +177,9 @@ function fillForm(app) {
   form.packageName.value = app.packageName;
   form.description.value = app.description;
   form.longDescription.value = app.longDescription;
+  form.whatsNew.value = app.whatsNew || '';
+  form.installDate.value = app.installDate ? app.installDate.split('T')[0] : '';
+  form.updateDate.value = app.updateDate ? app.updateDate.split('T')[0] : '';
   document.getElementById('apk-selector').value = decodeURIComponent(app.apkUrl.replace(/^apk\//, ''));
 
   // Normalize filenames for comparison so encoded/decoded and folder prefixes don't break matching
