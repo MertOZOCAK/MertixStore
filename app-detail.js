@@ -37,6 +37,59 @@ function ensureScreenshotUrl(value) {
   return `res/${encodeURIComponent(value)}`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatInlineText(value) {
+  const escaped = escapeHtml(value);
+  return escaped
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong>$1</strong>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function formatDescriptionText(value) {
+  if (!value) {
+    return '<p class="detail-paragraph">Bu uygulama için henüz ayrıntılı bir açıklama eklenmemiş.</p>';
+  }
+
+  const lines = String(value).replace(/\r\n?/g, '\n').split('\n');
+  const blocks = [];
+  let listItems = [];
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    blocks.push(`<ul class="detail-list">${listItems.map((item) => `<li>${item}</li>`).join('')}</ul>`);
+    listItems = [];
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushList();
+      blocks.push('<div class="detail-spacer"></div>');
+      return;
+    }
+
+    if (/^[-*•]\s+/.test(trimmed)) {
+      listItems.push(formatInlineText(trimmed.replace(/^[-*•]\s+/, '')));
+      return;
+    }
+
+    flushList();
+    blocks.push(`<p class="detail-paragraph">${formatInlineText(trimmed)}</p>`);
+  });
+
+  flushList();
+  return blocks.join('');
+}
+
 function startDownloadSimulation(buttonEl, apkUrl) {
   if (!buttonEl) {
     if (apkUrl && apkUrl !== '#') window.open(apkUrl, '_blank');
@@ -59,43 +112,55 @@ function startDownloadSimulation(buttonEl, apkUrl) {
     cancelDownload(buttonEl);
   };
 
-  const totalMs = 3000;
+  const totalMs = Math.floor(Math.random() * 51 + 10) * 1000;
   const stepMs = totalMs / 100;
+  const timers = [];
+  const clearTimers = () => {
+    timers.forEach((timerId) => clearTimeout(timerId));
+    buttonEl._dlTimers = [];
+  };
+
   let pct = 0;
-  if (buttonEl._dlTimer) clearInterval(buttonEl._dlTimer);
-  buttonEl._dlTimer = setInterval(() => {
-    pct += 2;
-    if (pct > 100) pct = 100;
-    fill.style.width = pct + '%';
-    label.textContent = `%${pct}`;
-    if (pct >= 100) {
-      clearInterval(buttonEl._dlTimer);
-      buttonEl._dlTimer = null;
-      delete buttonEl.dataset.downloading;
-      buttonEl.classList.remove('downloading');
-      buttonEl.onclick = null;
-      label.textContent = '%100';
-      setTimeout(() => {
-        if (apkUrl && apkUrl !== '#') {
-          const a = document.createElement('a');
-          a.href = apkUrl;
-          a.download = '';
-          a.target = '_blank';
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        }
-        buttonEl.innerHTML = 'APK İndir';
-      }, 250);
-    }
-  }, stepMs);
+  if (buttonEl._dlTimers?.length) {
+    clearTimers();
+  }
+
+  for (let i = 1; i <= 100; i += 1) {
+    const timerId = setTimeout(() => {
+      pct = i;
+      fill.style.width = pct + '%';
+      label.textContent = `%${pct}`;
+      if (pct >= 100) {
+        clearTimers();
+        delete buttonEl.dataset.downloading;
+        buttonEl.classList.remove('downloading');
+        buttonEl.onclick = null;
+        label.textContent = '%100';
+        setTimeout(() => {
+          if (apkUrl && apkUrl !== '#') {
+            const a = document.createElement('a');
+            a.href = apkUrl;
+            a.download = '';
+            a.target = '_blank';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }
+          buttonEl.innerHTML = 'APK İndir';
+        }, 250);
+      }
+    }, i * stepMs);
+    timers.push(timerId);
+  }
+
+  buttonEl._dlTimers = timers;
 }
 
 function cancelDownload(buttonEl) {
   if (!buttonEl) return;
-  if (buttonEl._dlTimer) {
-    clearInterval(buttonEl._dlTimer);
-    buttonEl._dlTimer = null;
+  if (buttonEl._dlTimers?.length) {
+    buttonEl._dlTimers.forEach((timerId) => clearTimeout(timerId));
+    buttonEl._dlTimers = [];
   }
   buttonEl.removeAttribute('data-downloading');
   buttonEl.classList.remove('downloading');
@@ -148,7 +213,7 @@ async function renderAppDetails(app) {
       <div class="detail-body">
         <div class="detail-section">
           <h3>Açıklama</h3>
-          <p>${app.longDescription || app.description || 'Bu uygulama için henüz ayrıntılı bir açıklama eklenmemiş.'}</p>
+          ${formatDescriptionText(app.longDescription || app.description || 'Bu uygulama için henüz ayrıntılı bir açıklama eklenmemiş.')}
         </div>
         <div class="detail-meta-grid">
           <div><strong>Geliştirici Ekibi</strong><span>${app.developer || 'Bilinmiyor'}</span></div>
